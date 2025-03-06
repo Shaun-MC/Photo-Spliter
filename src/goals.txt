@@ -1,0 +1,15 @@
+
+Bugs
+    Drag & Drop
+        - Photo doesn't get inserted into 
+
+ToDo
+    Add Saturation, Hue, Brightness photo storing
+
+    Double check allowed memebers can check out the repo
+    
+    Make sure the S3 bucket acess is only local to this repo
+
+
+
+
