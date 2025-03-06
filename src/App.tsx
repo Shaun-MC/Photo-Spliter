@@ -40,7 +40,7 @@ function App() {
     } catch (err) {
       console.error('Failed to save history:', err);
       // If we can't save, remove the oldest items until we can
-      if (err.name === 'QuotaExceededError' && imageHistory.length > 0) {
+      if (err instanceof Error && err.name === 'QuotaExceededError' && imageHistory.length > 0) {
         setImageHistory(prev => prev.slice(0, -1));
       }
     }
