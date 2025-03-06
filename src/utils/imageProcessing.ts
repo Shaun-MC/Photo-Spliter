@@ -29,6 +29,9 @@ export async function processImage(file: File): Promise<ProcessedImage> {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
+  // We have the image data, now upload it to the photo-spliter/original S3 bucket
+  
+
   // Create separate canvases for each channel
   const redCanvas = document.createElement('canvas');
   const greenCanvas = document.createElement('canvas');
