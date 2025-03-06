@@ -93,7 +93,7 @@ function App() {
             <h1 className="text-2xl font-bold">Photo Splitter</h1>
           </div>
           <div className="text-sm text-gray-400">
-            Built by Shyam Ramesh, Shaun Cushman, Iliya Belyak, Justin Yapjoco
+            Built by Group 3
           </div>
         </div>
       </header>
