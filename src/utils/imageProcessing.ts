@@ -3,6 +3,8 @@ export interface ProcessedImage {
   red: string;
   green: string;
   blue: string;
+  timestamp: number;
+  filename: string;
 }
 
 export async function processImage(file: File): Promise<ProcessedImage> {
@@ -28,9 +30,6 @@ export async function processImage(file: File): Promise<ProcessedImage> {
   // Get image data
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
-
-  // We have the image data, now upload it to the photo-spliter/original S3 bucket
-  
 
   // Create separate canvases for each channel
   const redCanvas = document.createElement('canvas');
@@ -82,7 +81,9 @@ export async function processImage(file: File): Promise<ProcessedImage> {
     original: originalUrl,
     red: redCanvas.toDataURL(file.type),
     green: greenCanvas.toDataURL(file.type),
-    blue: blueCanvas.toDataURL(file.type)
+    blue: blueCanvas.toDataURL(file.type),
+    timestamp: Date.now(),
+    filename: file.name
   };
 
   return processed;

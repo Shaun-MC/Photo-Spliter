@@ -1,14 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Download } from 'lucide-react';
+import { Upload, Image as ImageIcon, Download, Clock, ChevronRight, AlertCircle } from 'lucide-react';
 import { processImage, ProcessedImage } from './utils/imageProcessing';
+
+// Separate type for storing history items
+interface HistoryItem {
+  timestamp: number;
+  filename: string;
+  thumbnail: string; // Small thumbnail only
+}
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedImages, setProcessedImages] = useState<ProcessedImage | null>(null);
+  const [imageHistory, setImageHistory] = useState<HistoryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Load image history from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem('imageHistory');
+      if (savedHistory) {
+        setImageHistory(JSON.parse(savedHistory));
+      }
+    } catch (err) {
+      console.error('Failed to load history:', err);
+      // If there's an error loading history, start fresh
+      setImageHistory([]);
+    }
+  }, []);
+
+  // Save image history to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('imageHistory', JSON.stringify(imageHistory));
+    } catch (err) {
+      console.error('Failed to save history:', err);
+      // If we can't save, remove the oldest items until we can
+      if (err.name === 'QuotaExceededError' && imageHistory.length > 0) {
+        setImageHistory(prev => prev.slice(0, -1));
+      }
+    }
+  }, [imageHistory]);
 
   // Cleanup URLs when component unmounts or when processedImages changes
   useEffect(() => {
@@ -22,7 +58,34 @@ function App() {
     };
   }, [processedImages, preview]);
 
-  const validateAndProcessFile = (file: File) => {
+  const createThumbnail = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      
+      img.onload = () => {
+        // Calculate thumbnail size (max 100px)
+        const maxSize = 100;
+        const scale = Math.min(maxSize / img.width, maxSize / img.height);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        
+        // Draw scaled image
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Get thumbnail as data URL with reduced quality
+        resolve(canvas.toDataURL('image/jpeg', 0.5));
+        
+        // Cleanup
+        URL.revokeObjectURL(img.src);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const validateAndProcessFile = async (file: File) => {
     setError(null);
     
     if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
@@ -44,7 +107,7 @@ function App() {
     return true;
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       validateAndProcessFile(file);
@@ -87,6 +150,21 @@ function App() {
       setError(null);
       const processed = await processImage(selectedFile);
       setProcessedImages(processed);
+      
+      // Create thumbnail for history
+      const thumbnail = await createThumbnail(selectedFile);
+      
+      // Add to history, keeping only the last 5 items
+      const historyItem: HistoryItem = {
+        timestamp: Date.now(),
+        filename: selectedFile.name,
+        thumbnail
+      };
+      
+      setImageHistory(prev => {
+        const newHistory = [historyItem, ...prev].slice(0, 5);
+        return newHistory;
+      });
     } catch (err) {
       setError('An error occurred while processing the image. Please try again.');
       console.error(err);
@@ -118,6 +196,14 @@ function App() {
     }
   };
 
+  const loadHistoryItem = (item: HistoryItem) => {
+    setError('History items can only be viewed as thumbnails. Please upload a new image to process it.');
+  };
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
       <header className="py-6 px-4 border-b border-gray-700">
@@ -126,9 +212,13 @@ function App() {
             <ImageIcon className="w-8 h-8" />
             <h1 className="text-2xl font-bold">Photo Splitter</h1>
           </div>
-          <div className="text-sm text-gray-400">
-            Built by Team Awesome
-          </div>
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <Clock className="w-5 h-5" />
+            <span>History</span>
+          </button>
         </div>
       </header>
 
@@ -140,6 +230,36 @@ function App() {
             Each channel will be extracted and available for download.
           </p>
         </div>
+
+        {showHistory && imageHistory.length > 0 && (
+          <div className="mb-12 bg-gray-800/50 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold">Recent Images</h3>
+              <div className="flex items-center text-sm text-gray-400">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                <span>Thumbnails only</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {imageHistory.map((item) => (
+                <div
+                  key={item.timestamp}
+                  className="bg-gray-800 rounded-lg p-4 flex items-center space-x-4"
+                >
+                  <img
+                    src={item.thumbnail}
+                    alt={item.filename}
+                    className="w-16 h-16 rounded object-cover"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium truncate">{item.filename}</p>
+                    <p className="text-sm text-gray-400">{formatDate(item.timestamp)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="bg-gray-800 rounded-xl p-8 mb-12">
           <div className="flex flex-col items-center justify-center">
@@ -225,7 +345,7 @@ function App() {
 
       <footer className="py-6 px-4 border-t border-gray-700">
         <div className="max-w-7xl mx-auto text-center text-gray-400 text-sm">
-          © 2024 Photo Splitter. Created by Shaun Cushman, Justin Yapjoco, Shyam Ramesh, Illiya Belyak
+          © 2024 Photo Splitter. Created by Shaun Cushman, Justin Yapjoco, Shyam Ramesh, Iliya Belyak
         </div>
       </footer>
     </div>
