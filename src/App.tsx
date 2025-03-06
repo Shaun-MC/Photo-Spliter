@@ -8,6 +8,7 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedImages, setProcessedImages] = useState<ProcessedImage | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Cleanup URLs when component unmounts or when processedImages changes
   useEffect(() => {
@@ -21,27 +22,60 @@ function App() {
     };
   }, [processedImages, preview]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const validateAndProcessFile = (file: File) => {
     setError(null);
     
-    if (file) {
-      if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
-        setError('Please select a JPEG or PNG image.');
-        return;
-      }
-      
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        setError('File size must be less than 10MB.');
-        return;
-      }
+    if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+      setError('Please select a JPEG or PNG image.');
+      return false;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      setError('File size must be less than 10MB.');
+      return false;
+    }
 
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    return true;
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      validateAndProcessFile(file);
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      validateAndProcessFile(file);
     }
   };
 
@@ -93,7 +127,7 @@ function App() {
             <h1 className="text-2xl font-bold">Photo Splitter</h1>
           </div>
           <div className="text-sm text-gray-400">
-            Built by Group 3
+            Built by Team Awesome
           </div>
         </div>
       </header>
@@ -110,10 +144,18 @@ function App() {
         <div className="bg-gray-800 rounded-xl p-8 mb-12">
           <div className="flex flex-col items-center justify-center">
             <label 
-              className="w-full max-w-xl h-64 flex flex-col items-center justify-center border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition-colors"
+              className={`w-full max-w-xl h-64 flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                isDragging 
+                  ? 'border-blue-500 bg-blue-500/10' 
+                  : 'border-gray-600 hover:border-gray-500'
+              }`}
               htmlFor="file-upload"
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
             >
-              <Upload className="w-12 h-12 mb-4 text-gray-500" />
+              <Upload className={`w-12 h-12 mb-4 ${isDragging ? 'text-blue-500' : 'text-gray-500'}`} />
               <div className="text-center">
                 <p className="text-lg">Drop your image here, or click to select</p>
                 <p className="text-sm text-gray-500">PNG, JPG or JPEG (max. 10MB)</p>
