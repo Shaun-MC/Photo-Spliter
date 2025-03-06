@@ -3,6 +3,8 @@ Bugs
         - Photo doesn't get inserted into 
 
 ToDo
+    Create a Flask backend that exposes APIs that handle the S3 bucket access
+    
     Write the python scripts that are called from the imageProcessing.ts file that handles S3 & lambda access code execution
     
     Add Saturation, Hue, Brightness photo storing
