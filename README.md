@@ -1,1 +1,11 @@
-use npm install and then npm run dev
+Photo Spliter
+
+Table of Contents
+
+Project 
+
+Hosted Link
+
+Local Installation 
+
+Use
