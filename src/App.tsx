@@ -162,7 +162,7 @@ function App() {
       };
       
       setImageHistory(prev => {
-        const newHistory = [historyItem, ...prev].slice(0, 5);
+        const newHistory = [historyItem, ...prev].slice(0, 6);
         return newHistory;
       });
     } catch (err) {
