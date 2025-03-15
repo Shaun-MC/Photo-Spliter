@@ -15,6 +15,10 @@ https://main.d3qmiwtbyy576x.amplifyapp.com/
 ```
 
 ## Local Installation 
+*Note* npm and nodejs is required if you wish to locally install the project.  
+*Note* The project is connected to a specific S3 bucket and it is not publically accessible, therefore, local installation is pointless.  
+  
+Download code from github and unzip.
 ```
 $ cd ../Photo-Spliter
 $ npm install
