@@ -1,10 +1,10 @@
 # Photo Spliter
 
 ## Table of Contents
-* [Project](*Project)
-* [Hosted link](*hosted_link)
-* [Local Installation](*local_installation)
-* [Use](*use)
+* [Project](#project)
+* [Hosted link](#hosted_link)
+* [Local Installation](#local_installation)
+* [Use](#use)
 
 ## Project 
 Photo Splitter is a web application that allows users to upload an image, process it to extract individual RGB channels. The processed images are stored and made available for download. A photo history button allows users to see the last 6 photos they uploaded.
