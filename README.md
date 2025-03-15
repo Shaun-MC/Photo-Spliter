@@ -2,8 +2,8 @@
 
 ## Table of Contents
 * [Project](#project)
-* [Hosted link](#hosted_link)
-* [Local Installation](#local_installation)
+* [Hosted Link](#hosted-link)
+* [Local Installation](#local-installation)
 * [Use](#use)
 
 ## Project 
@@ -27,6 +27,6 @@ To use the Photo Splitter application:
 2. Drag a image or press on the upload image box to add photo.
 4. Press process image.
 
-If you want, you can download a specific color of the image.
+You can download a specific color of the image by pressing on the download button under one of the colored images.
 
-If you would like to view thge history, press on the history button on the top left of the application.
+To view history, press on the history button on the top left of the application.
